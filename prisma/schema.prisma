@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model carburants {
+  id              Int           @id @default(autoincrement())
+  vehicule_id     Int?
+  date_plein      DateTime?     @db.Date
+  quantite_litres Decimal?      @db.Decimal(6, 2)
+  cout_total      Decimal?      @db.Decimal(10, 2)
+  station_id      Int?
+  created_at      DateTime?     @default(now()) @db.DateTime(0)
+  updated_at      DateTime?     @db.DateTime(0)
+  utilisateur_id  Int?
+  station         station?      @relation(fields: [station_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_carburants_station")
+  utilisateurs    utilisateurs? @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_carburants_utilisateurs")
+  vehicules       vehicules?    @relation(fields: [vehicule_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "carburants_ibfk_1")
+
+  @@index([station_id], map: "FK_carburants_station")
+  @@index([utilisateur_id], map: "FK_carburants_utilisateurs")
+  @@index([vehicule_id], map: "vehicule_id")
+}
+
+model clients {
+  id                    Int           @id @default(autoincrement())
+  nom                   String?       @db.VarChar(100)
+  type_client_id        Int?
+  adresse               String?       @db.Text
+  telephone             String?       @db.VarChar(20)
+  email                 String?       @db.VarChar(100)
+  numero_identification String?       @db.VarChar(50)
+  created_at            DateTime?     @default(now()) @db.DateTime(0)
+  updated_at            DateTime?     @db.DateTime(0)
+  utilisateur_id        Int?
+  type_clients          type_clients? @relation(fields: [type_client_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_clients_type_clients")
+  utilisateurs          utilisateurs? @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_clients_utilisateurs")
+  locations             locations[]
+
+  @@index([type_client_id], map: "FK_clients_type_clients")
+  @@index([utilisateur_id], map: "FK_clients_utilisateurs")
+}
+
+model entretiens {
+  id                Int              @id @default(autoincrement())
+  vehicule_id       Int?
+  type_entretien_id Int?
+  description       String?          @db.Text
+  date_entretien    DateTime?        @db.Date
+  cout              Decimal?         @db.Decimal(10, 2)
+  garage_id         Int?
+  created_at        DateTime?        @default(now()) @db.DateTime(0)
+  updated_at        DateTime?        @db.DateTime(0)
+  utilisateur_id    Int?
+  type_entretiens   type_entretiens? @relation(fields: [type_entretien_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_entretiens_type_entretiens")
+  utilisateurs      utilisateurs?    @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_entretiens_utilisateurs")
+  vehicules         vehicules?       @relation(fields: [vehicule_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "entretiens_ibfk_1")
+
+  @@index([type_entretien_id], map: "FK_entretiens_type_entretiens")
+  @@index([utilisateur_id], map: "FK_entretiens_utilisateurs")
+  @@index([vehicule_id], map: "vehicule_id")
+}
+
+model garages {
+  id             Int       @id @default(autoincrement())
+  libelle        String?   @db.VarChar(100)
+  telephone      String?   @db.VarChar(50)
+  adresse        String?   @db.VarChar(100)
+  utilisateur_id Int?
+  created_at     DateTime? @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @db.DateTime(0)
+}
+
+model incidents {
+  id             Int                    @id @default(autoincrement())
+  vehicule_id    Int?
+  date_incident  DateTime?              @db.Date
+  description    String?                @db.Text
+  degats_estimes Decimal?               @db.Decimal(10, 2)
+  responsable    incidents_responsable?
+  created_at     DateTime?              @default(now()) @db.DateTime(0)
+  updated_at     DateTime?              @db.DateTime(0)
+  utilisateur_id Int?
+  utilisateurs   utilisateurs?          @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_incidents_utilisateurs")
+  vehicules      vehicules?             @relation(fields: [vehicule_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "incidents_ibfk_1")
+
+  @@index([utilisateur_id], map: "FK_incidents_utilisateurs")
+  @@index([vehicule_id], map: "vehicule_id")
+}
+
+model locations {
+  id             Int               @id @default(autoincrement())
+  vehicule_id    Int?
+  client_id      Int?
+  date_debut     DateTime?         @db.Date
+  date_fin       DateTime?         @db.Date
+  caution        Decimal?          @db.Decimal(10, 2)
+  cout_total     Decimal?          @db.Decimal(10, 2)
+  statut         locations_statut? @default(en_cours)
+  created_at     DateTime?         @default(now()) @db.DateTime(0)
+  updated_at     DateTime?         @db.DateTime(0)
+  utilisateur_id Int?
+  utilisateurs   utilisateurs?     @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_locations_utilisateurs")
+  vehicules      vehicules?        @relation(fields: [vehicule_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "locations_ibfk_1")
+  clients        clients?          @relation(fields: [client_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "locations_ibfk_2")
+  paiements      paiements[]
+
+  @@index([utilisateur_id], map: "FK_locations_utilisateurs")
+  @@index([client_id], map: "client_id")
+  @@index([vehicule_id], map: "vehicule_id")
+}
+
+model mode_paiements {
+  id             Int         @id @default(autoincrement())
+  libelle        String?     @db.VarChar(100)
+  utilisateur_id Int?
+  created_at     DateTime?   @default(now()) @db.DateTime(0)
+  updated_at     DateTime?   @db.DateTime(0)
+  paiements      paiements[]
+}
+
+model paiements {
+  id               Int               @id @default(autoincrement())
+  location_id      Int?
+  montant          Decimal?          @db.Decimal(10, 2)
+  date_paiement    DateTime?         @db.Date
+  mode_paiement_id Int?
+  created_at       DateTime?         @default(now()) @db.DateTime(0)
+  updated_at       DateTime?         @db.DateTime(0)
+  statut           paiements_statut?
+  utilisateur_id   Int?
+  mode_paiements   mode_paiements?   @relation(fields: [mode_paiement_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_paiements_mode_paiements")
+  utilisateurs     utilisateurs?     @relation(fields: [utilisateur_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_paiements_utilisateurs")
+  locations        locations?        @relation(fields: [location_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "paiements_ibfk_1")
+
+  @@index([mode_paiement_id], map: "FK_paiements_mode_paiements")
+  @@index([utilisateur_id], map: "FK_paiements_utilisateurs")
+  @@index([location_id], map: "location_id")
+}
+
+model roles {
+  id             Int            @id @default(autoincrement())
+  code           String?        @db.VarChar(20)
+  libelle        String?        @db.VarChar(100)
+  utilisateur_id Int?
+  created_at     DateTime?      @default(now()) @db.DateTime(0)
+  updated_at     DateTime?      @db.DateTime(0)
+  utilisateurs   utilisateurs[]
+}
+
+model station {
+  id             Int          @id @default(autoincrement())
+  libelle        String?      @db.VarChar(100)
+  utilisateur_id Int?
+  created_at     DateTime?    @default(now()) @db.DateTime(0)
+  updated_at     DateTime?    @db.DateTime(0)
+  carburants     carburants[]
+}
+
+model type_clients {
+  id             Int       @id @default(autoincrement())
+  libelle        String?   @db.VarChar(100)
+  utilisateur_id Int?
+  created_at     DateTime? @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @db.DateTime(0)
+  clients        clients[]
+}
+
+model type_entretiens {
+  id             Int          @id @default(autoincrement())
+  libelle        String?      @db.VarChar(100)
+  created_at     DateTime?    @default(now()) @db.DateTime(0)
+  updated_at     DateTime?    @db.DateTime(0)
+  utilisateur_id Int?
+  entretiens     entretiens[]
+}
+
+model utilisateurs {
+  id         Int          @id @default(autoincrement())
+  nom        String?      @db.VarChar(50)
+  prenoms    String?      @db.VarChar(200)
+  telephone  String?      @unique(map: "email") @db.VarChar(100)
+  password   String?      @db.VarChar(255)
+  photoUrl   String?      @db.VarChar(255)
+  role_id    Int?
+  user_id    Int?
+  carburants carburants[]
+  clients    clients[]
+  entretiens entretiens[]
+  incidents  incidents[]
+  locations  locations[]
+  paiements  paiements[]
+  roles      roles?       @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_utilisateurs_roles")
+
+  @@index([role_id], map: "FK_utilisateurs_roles")
+}
+
+model vehicules {
+  id                 Int                  @id @default(autoincrement())
+  immatriculation    String               @unique(map: "immatriculation") @db.VarChar(20)
+  marque_id          Int?
+  modele_id          Int?
+  annee              Int?
+  couleur            String?              @db.VarChar(30)
+  carburant          vehicules_carburant?
+  type_vehicule_id   Int?
+  kilometrage        Int?
+  date_achat         DateTime?            @db.Date
+  prix_achat         Decimal?             @db.Decimal(10, 2)
+  prix_location_jour Decimal?             @db.Decimal(10, 2)
+  statut             vehicules_statut?    @default(disponible)
+  carburants         carburants[]
+  entretiens         entretiens[]
+  incidents          incidents[]
+  locations          locations[]
+}
+
+enum incidents_responsable {
+  client
+  mecanicien
+  inconnu
+}
+
+enum vehicules_carburant {
+  essence
+  diesel
+  hybride
+  electrique
+}
+
+enum locations_statut {
+  en_cours @map("en cours")
+  termin_e @map("terminée")
+  annul_e  @map("annulée")
+}
+
+enum paiements_statut {
+  pay_     @map("payé")
+  partiel
+  non_pay_ @map("non payé")
+}
+
+enum vehicules_statut {
+  disponible
+  lou_           @map("loué")
+  en_maintenance @map("en maintenance")
+  hors_service   @map("hors service")
+}

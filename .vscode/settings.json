@@ -1,0 +1,10 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": ".*\\.ts$",
+        "cmd": "powershell -Command \"(Get-Content '${file}') -replace 'ConflictException,·Injectable,·UnauthorizedException', '`r`n  ConflictException,`r`n  Injectable,`r`n  UnauthorizedException,`r`n' | Set-Content '${file}'\""
+      }
+    ]
+  }
+}
